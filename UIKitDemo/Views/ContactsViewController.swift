@@ -8,96 +8,82 @@
 import UIKit
 
 class ContactsViewController: UIViewController {
-
-    private let nameLabel = UILabel()
-    private let emailLabel = UILabel()
-    private let button = UIButton()
-    private let contactContainer = UIStackView()
     
-    //whenever the vars change, then update value
-    private var name: String = "" {
-        didSet {
-            self.nameLabel.text = name
-        }
-    }
-    private var email: String = "" {
-        didSet{
-            self.emailLabel.text = email
-        }
-    }
-    
-    
+    private var employees: [Employee] = []
+    let tableView = UITableView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         setup()
-        name = "Steve Smith"
-        email = "smith@example.com"
+        loadData()
+
     }
 
-    private func buttonTapped() {
-        
-        //create the new details screen
-        let detailsVC = ContactDetailsViewController()
-        
-        //navigate to open up the details view
-        self.navigationController?.pushViewController(detailsVC, animated: true)    //pushing onto stack
-        
+    func loadData() {
+        employees = [
+            Employee(id: 101, firstName: "Antonio", lastName: "Banderas"),
+            Employee(id: 102, firstName: "Olivia", lastName: "Rodrigo"),
+            Employee(id: 103, firstName: "Cleo", lastName: "Guerrero"),
+            Employee(id: 104, firstName: "Daisy", lastName: "Arteaga"),
+            Employee(id: 105, firstName: "Nana", lastName: "Garcia")
+        ]
     }
 
 }
 
-private extension ContactsViewController {
+extension ContactsViewController: UITableViewDataSource, UITableViewDelegate {
+    
+    // MARK: - UITableViewDataSource methods
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        //return number of rows we will have
+        return employees.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        //get a cell from the UITableView
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        
+        //set the cell's contents
+        cell.textLabel?.text = employees[indexPath.row].fullName
+        
+        return cell
+        
+    }
+    
+    // MARK: UITableViewDelegate methods
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectEmployee = employees[indexPath.row]
+        let detailsVC = ContactDetailsViewController()
+        detailsVC.employee = selectEmployee
+        self.navigationController?.pushViewController(detailsVC, animated: true)
+    }
     
     
+    // MARK: - UI element configuration
     
     func setup() {
         self.view.backgroundColor = .white
         
-        //configure the label
-        nameLabel.text = name
-        nameLabel.font = .systemFont(ofSize: 24, weight: .bold)
         
-        emailLabel.text = email
-        
-        //configure button
-        button.configuration = .filled()
-        button.configuration?.title = "View Details"
-        button.addAction (UIAction {[weak self] _ in
-            self?.buttonTapped()
-        }, for: .touchUpInside)
-        
-        //add the ui views to the container
-        contactContainer.addArrangedSubview(nameLabel)
-        contactContainer.addArrangedSubview(emailLabel)
-        contactContainer.addArrangedSubview(button)
-        
-        //configure the container element
-        contactContainer.backgroundColor = .gray.withAlphaComponent(0.1)
-        contactContainer.axis = .vertical
-        contactContainer.spacing = 8
-        contactContainer.alignment = .leading
-        
-        //add padding
-        contactContainer.isLayoutMarginsRelativeArrangement = true
-        contactContainer.layoutMargins = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-        
-        //rounded corners
-        contactContainer.layer.cornerRadius = 8
-        contactContainer.clipsToBounds = true
         
         //disable the auto creation of constraints on the top level thing
-        contactContainer.translatesAutoresizingMaskIntoConstraints = false
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         
-        self.view.addSubview(contactContainer)
+        self.view.addSubview(tableView)
         
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         NSLayoutConstraint.activate([
-            contactContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            contactContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            contactContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 20)
             
         ])
+        tableView.dataSource = self
+        tableView.delegate = self
         
 //        //disable the auto creation of constraints for this label
 //        label.translatesAutoresizingMaskIntoConstraints = false
